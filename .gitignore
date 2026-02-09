@@ -1,0 +1,22 @@
+# MacOS
+.DS_Store
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Expo
+.expo/
+web-build/
+
+# Keys
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+
+# Editor
+.vscode/
+.idea/
+*.swp
