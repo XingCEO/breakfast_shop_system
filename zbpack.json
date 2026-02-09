@@ -1,4 +1,6 @@
 {
-  "build_command": "npm install && npm run build",
-  "output_dir": "dist"
+  "static": {
+    "dir": "dist"
+  },
+  "build_command": "npm install && npm run build"
 }
