@@ -117,6 +117,55 @@ export const CATEGORIES = [
   '紅茶', '奶茶', '牛奶', '豆漿', '咖啡',
 ]
 
+// 可加購套餐的分類
+export const ADDON_ELIGIBLE_CATEGORIES = [
+  '虎皮蛋餅', '草原烤吐司', '漢堡', '厚片吐司', '蘿蔔糕套餐', '鍋炒麵'
+]
+
+// 套餐選項
+export const COMBO_OPTIONS = [
+  { id: 'combo_60', name: '60元套餐', price: 60, desc: '35元以下飲品 + 點心1份' },
+  { id: 'combo_95', name: '95元套餐', price: 95, desc: '35元以下飲品 + 點心2份' },
+]
+
+// 套餐飲品選項 (35元以下)
+export const COMBO_DRINKS = [
+  { id: 'drink_none', name: '不要飲料 (折抵$30)', price: -30 },
+  { id: 'drink_1', name: '紅茶(溫/無糖)', price: 0 },
+  { id: 'drink_2', name: '紅茶(溫/含糖)', price: 0 },
+  { id: 'drink_3', name: '紅茶(涼/無糖)', price: 0 },
+  { id: 'drink_4', name: '紅茶(涼/含糖)', price: 0 },
+  { id: 'drink_5', name: '豆漿(溫/無糖)', price: 0 },
+  { id: 'drink_6', name: '豆漿(溫/含糖)', price: 0 },
+  { id: 'drink_7', name: '豆漿(涼/無糖)', price: 0 },
+  { id: 'drink_8', name: '豆漿(涼/含糖)', price: 0 },
+  { id: 'drink_9', name: '豆漿紅茶(涼)', price: 0 },
+]
+
+// 套餐配菜選項
+export const COMBO_SIDES = [
+  { id: 'side_a', name: '(A) 炸雞條', price: 0 },
+  { id: 'side_b', name: '(B) 脆薯', price: 0 },
+  { id: 'side_c', name: '(C) 蔬菜番茄沙拉', price: 0 },
+  { id: 'side_d', name: '(D) 蔬菜青檸沙拉', price: 0 },
+  { id: 'side_e', name: '(E) 地瓜', price: 0 },
+  { id: 'side_f', name: '(F) 花蛤湯', price: 0 },
+  { id: 'side_g', name: '(G) 薯餅×2', price: 0 },
+]
+
+// 單點加料
+export const EXTRA_OPTIONS = [
+  { id: 'extra_cheese', name: '加起司', price: 10 },
+]
+
+// 鍋炒麵升級選項
+export const NOODLE_UPGRADES = [
+  { id: 'noodle_1', name: '里肌豬排', price: 40 },
+  { id: 'noodle_2', name: '卡啦雞腿排', price: 50 },
+  { id: 'noodle_3', name: '舒肥雞胸', price: 75 },
+  { id: 'noodle_4', name: '香煎雞腿排', price: 80 },
+]
+
 export const CATEGORY_EMOJIS = {
   '全部': '📋',
   '虎皮蛋餅': '🥚',
