@@ -1,21 +1,29 @@
 import React, { useState, useMemo } from 'react'
-import { Search, ShoppingCart, Plus, Minus, Trash2, X } from 'lucide-react'
+import { ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, X } from 'lucide-react'
 import { MENU_ITEMS, CATEGORIES, CATEGORY_EMOJIS } from './data/menuData'
+
+// 生成訂單編號
+const generateOrderId = () => {
+  const now = new Date()
+  const time = now.toTimeString().slice(0, 5).replace(':', '')
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0')
+  return `${time}-${random}`
+}
 
 // 主應用
 export default function App() {
   const [cart, setCart] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('全部')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [orders, setOrders] = useState([])
+  const [showOrderModal, setShowOrderModal] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState(null)
 
   // 篩選菜單
   const filteredItems = useMemo(() => {
     return MENU_ITEMS.filter(item => {
-      const matchCategory = selectedCategory === '全部' || item.category === selectedCategory
-      const matchSearch = !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchCategory && matchSearch
+      return selectedCategory === '全部' || item.category === selectedCategory
     })
-  }, [selectedCategory, searchQuery])
+  }, [selectedCategory])
 
   // 購物車操作
   const addToCart = (item) => {
@@ -53,10 +61,34 @@ export default function App() {
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
 
+  // 建立訂單
   const handleCheckout = () => {
     if (cart.length === 0) return
-    alert(`訂單已送出！\n總計: $${totalPrice}`)
+
+    const newOrder = {
+      id: generateOrderId(),
+      items: [...cart],
+      total: totalPrice,
+      status: 'pending',
+      createdAt: new Date()
+    }
+
+    setOrders(prev => [newOrder, ...prev])
+    setCurrentOrder(newOrder)
+    setShowOrderModal(true)
     setCart([])
+  }
+
+  // 更新訂單狀態
+  const updateOrderStatus = (orderId, status) => {
+    setOrders(prev => prev.map(order =>
+      order.id === orderId ? { ...order, status } : order
+    ))
+  }
+
+  // 時間格式化
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -72,15 +104,16 @@ export default function App() {
               <p style={styles.subtitle}>BOBO BREAKFAST</p>
             </div>
           </div>
-          <div style={styles.searchBox}>
-            <Search size={18} color="rgba(255,255,255,0.5)" />
-            <input
-              type="text"
-              placeholder="搜尋菜單..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              style={styles.searchInput}
-            />
+          <div style={styles.headerRight}>
+            <div style={styles.clock}>
+              <Clock size={16} color="#F5A623" />
+              <span>{new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            {orders.filter(o => o.status === 'pending').length > 0 && (
+              <div style={styles.pendingBadge}>
+                {orders.filter(o => o.status === 'pending').length} 待處理
+              </div>
+            )}
           </div>
         </header>
 
@@ -104,14 +137,24 @@ export default function App() {
         {/* 菜單網格 */}
         <div style={styles.menuGrid}>
           {filteredItems.map(item => (
-            <div key={item.id} style={styles.menuCard} onClick={() => addToCart(item)}>
+            <div
+              key={item.id}
+              style={styles.menuCard}
+              onClick={() => addToCart(item)}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
               <span style={styles.menuEmoji}>{item.emoji}</span>
               <p style={styles.menuName}>{item.name}</p>
               <p style={styles.menuPrice}>${item.price}</p>
               {item.tags?.length > 0 && (
                 <div style={styles.tags}>
                   {item.tags.map(tag => (
-                    <span key={tag} style={styles.tag}>{tag}</span>
+                    <span key={tag} style={{
+                      ...styles.tag,
+                      ...(tag === '人氣' ? styles.tagPopular : {}),
+                      ...(tag === '健康' ? styles.tagHealthy : {}),
+                    }}>{tag}</span>
                   ))}
                 </div>
               )}
@@ -133,6 +176,7 @@ export default function App() {
             <div style={styles.emptyCart}>
               <ShoppingCart size={48} color="rgba(255,255,255,0.2)" />
               <p>購物車是空的</p>
+              <p style={styles.emptyHint}>點擊菜單加入商品</p>
             </div>
           ) : (
             cart.map(item => (
@@ -141,7 +185,7 @@ export default function App() {
                   <span style={styles.cartEmoji}>{item.emoji}</span>
                   <div>
                     <p style={styles.cartItemName}>{item.name}</p>
-                    <p style={styles.cartItemPrice}>${item.price * item.quantity}</p>
+                    <p style={styles.cartItemPrice}>${item.price} × {item.quantity} = ${item.price * item.quantity}</p>
                   </div>
                 </div>
                 <div style={styles.cartItemActions}>
@@ -176,10 +220,71 @@ export default function App() {
             onClick={handleCheckout}
             disabled={cart.length === 0}
           >
-            結帳
+            建立訂單
           </button>
         </div>
+
+        {/* 訂單列表 */}
+        {orders.length > 0 && (
+          <div style={styles.orderSection}>
+            <h3 style={styles.orderSectionTitle}>今日訂單</h3>
+            <div style={styles.orderList}>
+              {orders.slice(0, 5).map(order => (
+                <div
+                  key={order.id}
+                  style={{
+                    ...styles.orderItem,
+                    ...(order.status === 'completed' ? styles.orderCompleted : {})
+                  }}
+                  onClick={() => updateOrderStatus(order.id, order.status === 'pending' ? 'completed' : 'pending')}
+                >
+                  <div style={styles.orderInfo}>
+                    <span style={styles.orderId}>#{order.id}</span>
+                    <span style={styles.orderTime}>{formatTime(order.createdAt)}</span>
+                  </div>
+                  <div style={styles.orderMeta}>
+                    <span style={styles.orderTotal}>${order.total}</span>
+                    {order.status === 'completed' ? (
+                      <CheckCircle size={16} color="#34D399" />
+                    ) : (
+                      <Clock size={16} color="#FBBF24" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* 訂單確認 Modal */}
+      {showOrderModal && currentOrder && (
+        <div style={styles.modalOverlay} onClick={() => setShowOrderModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <button style={styles.modalClose} onClick={() => setShowOrderModal(false)}>
+              <X size={20} />
+            </button>
+            <div style={styles.modalIcon}>✅</div>
+            <h2 style={styles.modalTitle}>訂單已建立</h2>
+            <p style={styles.modalOrderId}>訂單編號: #{currentOrder.id}</p>
+            <div style={styles.modalItems}>
+              {currentOrder.items.map(item => (
+                <div key={item.id} style={styles.modalItem}>
+                  <span>{item.emoji} {item.name} × {item.quantity}</span>
+                  <span>${item.price * item.quantity}</span>
+                </div>
+              ))}
+            </div>
+            <div style={styles.modalTotal}>
+              <span>總計</span>
+              <span style={styles.modalTotalPrice}>${currentOrder.total}</span>
+            </div>
+            <button style={styles.modalBtn} onClick={() => setShowOrderModal(false)}>
+              確認
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -203,6 +308,7 @@ const styles = {
     flexDirection: 'column',
     background: '#141416',
     borderLeft: '1px solid rgba(255,255,255,0.08)',
+    minWidth: '320px',
   },
   header: {
     display: 'flex',
@@ -235,22 +341,26 @@ const styles = {
     letterSpacing: '2px',
     margin: 0,
   },
-  searchBox: {
+  headerRight: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    background: '#2C2C2E',
-    padding: '10px 16px',
-    borderRadius: '12px',
-    border: '1px solid rgba(255,255,255,0.08)',
+    gap: '16px',
   },
-  searchInput: {
-    background: 'none',
-    border: 'none',
+  clock: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
     color: '#F5F5F7',
-    fontSize: '14px',
-    outline: 'none',
-    width: '200px',
+    fontSize: '16px',
+    fontWeight: '600',
+  },
+  pendingBadge: {
+    background: 'rgba(251,191,36,0.15)',
+    color: '#FBBF24',
+    padding: '6px 12px',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '600',
   },
   categories: {
     display: 'flex',
@@ -263,14 +373,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    padding: '8px 16px',
+    padding: '10px 18px',
     borderRadius: '20px',
     background: 'rgba(255,255,255,0.05)',
     color: 'rgba(255,255,255,0.6)',
-    fontSize: '13px',
+    fontSize: '14px',
     fontWeight: '500',
     whiteSpace: 'nowrap',
     transition: 'all 0.2s',
+    border: '1px solid transparent',
   },
   categoryBtnActive: {
     background: 'rgba(245,166,35,0.15)',
@@ -280,7 +391,7 @@ const styles = {
   menuGrid: {
     flex: 1,
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
     gap: '12px',
     padding: '16px 24px',
     overflowY: 'auto',
@@ -295,20 +406,22 @@ const styles = {
     border: '1px solid rgba(255,255,255,0.06)',
   },
   menuEmoji: {
-    fontSize: '32px',
+    fontSize: '28px',
     display: 'block',
     marginBottom: '8px',
   },
   menuName: {
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
     color: '#F5F5F7',
     marginBottom: '4px',
+    lineHeight: '1.3',
   },
   menuPrice: {
     fontSize: '16px',
     fontWeight: '700',
     color: '#F5A623',
+    margin: 0,
   },
   tags: {
     display: 'flex',
@@ -322,6 +435,14 @@ const styles = {
     borderRadius: '4px',
     background: 'rgba(52,211,153,0.12)',
     color: '#34D399',
+  },
+  tagPopular: {
+    background: 'rgba(244,63,94,0.12)',
+    color: '#F43F5E',
+  },
+  tagHealthy: {
+    background: 'rgba(56,189,248,0.12)',
+    color: '#38BDF8',
   },
   cartHeader: {
     display: 'flex',
@@ -344,6 +465,8 @@ const styles = {
     fontWeight: '700',
     padding: '2px 8px',
     borderRadius: '10px',
+    minWidth: '24px',
+    textAlign: 'center',
   },
   cartItems: {
     flex: 1,
@@ -355,9 +478,14 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
+    height: '200px',
     color: 'rgba(255,255,255,0.4)',
-    gap: '12px',
+    gap: '8px',
+  },
+  emptyHint: {
+    fontSize: '12px',
+    color: 'rgba(255,255,255,0.25)',
+    margin: 0,
   },
   cartItem: {
     display: 'flex',
@@ -372,6 +500,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    flex: 1,
   },
   cartEmoji: {
     fontSize: '24px',
@@ -383,10 +512,9 @@ const styles = {
     margin: 0,
   },
   cartItemPrice: {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#F5A623',
-    margin: 0,
+    fontSize: '12px',
+    color: 'rgba(255,255,255,0.5)',
+    margin: '2px 0 0 0',
   },
   cartItemActions: {
     display: 'flex',
@@ -451,9 +579,156 @@ const styles = {
     width: '100%',
     padding: '16px',
     borderRadius: '12px',
+    background: 'linear-gradient(135deg, #F5A623 0%, #D4891B 100%)',
+    color: '#000',
+    fontSize: '16px',
+    fontWeight: '700',
+    transition: 'all 0.2s',
+  },
+  orderSection: {
+    padding: '16px',
+    borderTop: '1px solid rgba(255,255,255,0.08)',
+    maxHeight: '200px',
+    overflowY: 'auto',
+  },
+  orderSectionTitle: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
+    margin: '0 0 12px 0',
+  },
+  orderList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  orderItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 12px',
+    background: 'rgba(251,191,36,0.08)',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    border: '1px solid rgba(251,191,36,0.2)',
+  },
+  orderCompleted: {
+    background: 'rgba(52,211,153,0.08)',
+    border: '1px solid rgba(52,211,153,0.2)',
+  },
+  orderInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  orderId: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#F5F5F7',
+  },
+  orderTime: {
+    fontSize: '11px',
+    color: 'rgba(255,255,255,0.4)',
+  },
+  orderMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  orderTotal: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#F5A623',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0,0,0,0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modal: {
+    background: '#1C1C1E',
+    borderRadius: '24px',
+    padding: '32px',
+    width: '90%',
+    maxWidth: '400px',
+    position: 'relative',
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    background: 'rgba(255,255,255,0.1)',
+    border: 'none',
+    borderRadius: '50%',
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'rgba(255,255,255,0.6)',
+    cursor: 'pointer',
+  },
+  modalIcon: {
+    fontSize: '48px',
+    textAlign: 'center',
+    marginBottom: '16px',
+  },
+  modalTitle: {
+    fontSize: '22px',
+    fontWeight: '700',
+    color: '#F5F5F7',
+    textAlign: 'center',
+    margin: '0 0 8px 0',
+  },
+  modalOrderId: {
+    fontSize: '14px',
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+    margin: '0 0 24px 0',
+  },
+  modalItems: {
+    background: 'rgba(0,0,0,0.3)',
+    borderRadius: '12px',
+    padding: '16px',
+    marginBottom: '16px',
+  },
+  modalItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '8px 0',
+    fontSize: '14px',
+    color: '#F5F5F7',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  },
+  modalTotal: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 0',
+    fontSize: '16px',
+    color: '#F5F5F7',
+  },
+  modalTotalPrice: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#F5A623',
+  },
+  modalBtn: {
+    width: '100%',
+    padding: '16px',
+    borderRadius: '12px',
     background: '#F5A623',
     color: '#000',
     fontSize: '16px',
     fontWeight: '700',
+    marginTop: '8px',
   },
 }

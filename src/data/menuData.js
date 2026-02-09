@@ -1,4 +1,4 @@
-// 菜單靜態資料
+// 菜單靜態資料 - 優化版
 
 export const MENU_ITEMS = [
   // 虎皮蛋餅
@@ -14,7 +14,7 @@ export const MENU_ITEMS = [
   // 草原烤吐司
   { id: '1198004', name: '吐司-草原蔬菜', category: '草原烤吐司', price: 60, emoji: '🍞', tags: ['蛋奶素', '健康'] },
   { id: '1198006', name: '吐司-原塊地瓜', category: '草原烤吐司', price: 60, emoji: '🍞', tags: ['蛋奶素'] },
-  { id: '1198012X', name: '肉鬆蛋', category: '草原烤吐司', price: 60, emoji: '🍞', tags: [] },
+  { id: '1198012X', name: '肉鬆蛋吐司', category: '草原烤吐司', price: 60, emoji: '🍞', tags: [] },
   { id: '1198005', name: '吐司-薯餅蛋沙拉', category: '草原烤吐司', price: 65, emoji: '🍞', tags: ['蛋奶素'] },
   { id: '1198008', name: '吐司-鮪魚玉米洋蔥蛋', category: '草原烤吐司', price: 65, emoji: '🍞', tags: [] },
   { id: '1198009', name: '吐司-草原菇菇', category: '草原烤吐司', price: 75, emoji: '🍞', tags: ['蛋奶素'] },
@@ -45,25 +45,25 @@ export const MENU_ITEMS = [
   { id: 'R002', name: '蘿蔔糕蛋里肌', category: '蘿蔔糕套餐', price: 85, emoji: '🥘', tags: [] },
 
   // 鍋炒麵
-  { id: 'N001', name: '黑胡椒醬', category: '鍋炒麵', price: 70, emoji: '🍜', tags: [] },
-  { id: 'N002', name: '炒有機藜麥茄汁醬', category: '鍋炒麵', price: 70, emoji: '🍜', tags: ['健康'] },
-  { id: 'N003', name: '草原菇菇醬(全素)', category: '鍋炒麵', price: 80, emoji: '🍜', tags: ['全素'] },
-  { id: 'N004', name: '蔥爆黑豬肉醬', category: '鍋炒麵', price: 80, emoji: '🍜', tags: [] },
+  { id: 'N001', name: '炒麵-黑胡椒醬', category: '鍋炒麵', price: 70, emoji: '🍜', tags: [] },
+  { id: 'N002', name: '炒麵-有機藜麥茄汁', category: '鍋炒麵', price: 70, emoji: '🍜', tags: ['健康'] },
+  { id: 'N003', name: '炒麵-草原菇菇(全素)', category: '鍋炒麵', price: 80, emoji: '🍜', tags: ['全素'] },
+  { id: 'N004', name: '炒麵-蔥爆黑豬肉', category: '鍋炒麵', price: 80, emoji: '🍜', tags: [] },
 
   // 義大利麵
-  { id: 'P001', name: '松子粒_青醬義麵', category: '義大利麵', price: 145, emoji: '🍝', tags: [] },
-  { id: 'P002', name: '歐姆蛋 青醬麵', category: '義大利麵', price: 135, emoji: '🍝', tags: ['蛋素'] },
-  { id: 'P003', name: '歐姆蛋 紅醬麵', category: '義大利麵', price: 135, emoji: '🍝', tags: [] },
-  { id: 'P004', name: '歐姆蛋 白醬麵(奶素)', category: '義大利麵', price: 135, emoji: '🍝', tags: ['奶素'] },
-  { id: 'P013', name: '卡啦雞腿青醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
-  { id: 'P014', name: '卡拉雞腿紅醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
-  { id: 'P015', name: '卡啦雞腿白醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
+  { id: 'P001', name: '義麵-松子青醬', category: '義大利麵', price: 145, emoji: '🍝', tags: [] },
+  { id: 'P002', name: '義麵-歐姆蛋青醬', category: '義大利麵', price: 135, emoji: '🍝', tags: ['蛋素'] },
+  { id: 'P003', name: '義麵-歐姆蛋紅醬', category: '義大利麵', price: 135, emoji: '🍝', tags: [] },
+  { id: 'P004', name: '義麵-歐姆蛋白醬', category: '義大利麵', price: 135, emoji: '🍝', tags: ['奶素'] },
+  { id: 'P013', name: '義麵-卡啦雞腿青醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
+  { id: 'P014', name: '義麵-卡拉雞腿紅醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
+  { id: 'P015', name: '義麵-卡啦雞腿白醬', category: '義大利麵', price: 170, emoji: '🍝', tags: ['人氣'] },
 
   // 義大利燉飯
-  { id: 'R101', name: '松子粒_青醬飯', category: '義大利燉飯', price: 145, emoji: '🍚', tags: [] },
-  { id: 'R102', name: '歐姆蛋 青醬飯', category: '義大利燉飯', price: 135, emoji: '🍚', tags: ['蛋素'] },
-  { id: 'R113', name: '卡啦雞腿青醬飯', category: '義大利燉飯', price: 170, emoji: '🍚', tags: ['人氣'] },
-  { id: 'R114', name: '卡啦雞腿紅醬飯', category: '義大利燉飯', price: 170, emoji: '🍚', tags: ['人氣'] },
+  { id: 'R101', name: '燉飯-松子青醬', category: '義大利燉飯', price: 145, emoji: '🍚', tags: [] },
+  { id: 'R102', name: '燉飯-歐姆蛋青醬', category: '義大利燉飯', price: 135, emoji: '🍚', tags: ['蛋素'] },
+  { id: 'R113', name: '燉飯-卡啦雞腿青醬', category: '義大利燉飯', price: 170, emoji: '🍚', tags: ['人氣'] },
+  { id: 'R114', name: '燉飯-卡啦雞腿紅醬', category: '義大利燉飯', price: 170, emoji: '🍚', tags: ['人氣'] },
 
   // 早午餐(低GI)
   { id: 'LG001', name: '低GI-草原蔬菜(全素)', category: '早午餐(低GI)', price: 135, emoji: '🥗', tags: ['全素', '健康'] },
@@ -81,35 +81,40 @@ export const MENU_ITEMS = [
   { id: 'S011', name: '脆薯', category: '點心', price: 50, emoji: '🍟', tags: [] },
   { id: 'S012', name: '舒肥雞胸', category: '點心', price: 90, emoji: '🍗', tags: ['健康'] },
 
-  // 飲品
-  { id: 'D001', name: '溫紅茶(無糖)', category: '飲品', price: 30, emoji: '🧋', tags: [] },
-  { id: 'D002', name: '溫紅茶(糖)', category: '飲品', price: 30, emoji: '🧋', tags: [] },
-  { id: 'D003', name: '涼紅茶(無糖)', category: '飲品', price: 35, emoji: '🧋', tags: [] },
-  { id: 'D004', name: '涼紅茶(糖)', category: '飲品', price: 35, emoji: '🧋', tags: [] },
-  { id: 'D010', name: '溫牛奶', category: '飲品', price: 50, emoji: '🥛', tags: [] },
-  { id: 'D011', name: '可可牛奶', category: '飲品', price: 50, emoji: '🍫', tags: [] },
-  { id: 'D012', name: '溫奶茶(糖)', category: '飲品', price: 50, emoji: '🧋', tags: [] },
-  { id: 'D017', name: '涼奶茶(糖)', category: '飲品', price: 60, emoji: '🧋', tags: [] },
+  // 紅茶系列
+  { id: 'D001', name: '紅茶(溫/無糖)', category: '紅茶', price: 30, emoji: '🧋', tags: [] },
+  { id: 'D002', name: '紅茶(溫/含糖)', category: '紅茶', price: 30, emoji: '🧋', tags: [] },
+  { id: 'D003', name: '紅茶(涼/無糖)', category: '紅茶', price: 35, emoji: '🧋', tags: [] },
+  { id: 'D004', name: '紅茶(涼/含糖)', category: '紅茶', price: 35, emoji: '🧋', tags: [] },
 
-  // 豆漿飲品
-  { id: 'SD001', name: '溫豆漿(無糖)', category: '豆漿飲品', price: 30, emoji: '🥛', tags: [] },
-  { id: 'SD002', name: '溫豆漿(含糖)', category: '豆漿飲品', price: 30, emoji: '🥛', tags: [] },
-  { id: 'SD003', name: '涼豆漿(無糖)', category: '豆漿飲品', price: 30, emoji: '🥛', tags: [] },
-  { id: 'SD004', name: '涼豆漿(含糖)', category: '豆漿飲品', price: 30, emoji: '🥛', tags: [] },
+  // 奶茶系列
+  { id: 'D012', name: '奶茶(溫/含糖)', category: '奶茶', price: 50, emoji: '🧋', tags: [] },
+  { id: 'D017', name: '奶茶(涼/含糖)', category: '奶茶', price: 60, emoji: '🧋', tags: [] },
 
-  // 咖啡
-  { id: 'C001', name: '溫 美式咖啡', category: '咖啡', price: 55, emoji: '☕', tags: [] },
-  { id: 'C002', name: '溫 手沖咖啡', category: '咖啡', price: 60, emoji: '☕', tags: [] },
-  { id: 'C003', name: '溫 手沖拿鐵', category: '咖啡', price: 70, emoji: '☕', tags: [] },
-  { id: 'C004', name: '涼 美式咖啡', category: '咖啡', price: 70, emoji: '☕', tags: [] },
-  { id: 'C005', name: '涼 手沖咖啡', category: '咖啡', price: 75, emoji: '☕', tags: [] },
-  { id: 'C006', name: '涼 手沖拿鐵', category: '咖啡', price: 85, emoji: '☕', tags: [] },
+  // 牛奶系列
+  { id: 'D010', name: '溫牛奶', category: '牛奶', price: 50, emoji: '🥛', tags: [] },
+  { id: 'D011', name: '可可牛奶', category: '牛奶', price: 50, emoji: '🍫', tags: [] },
+
+  // 豆漿系列
+  { id: 'SD001', name: '豆漿(溫/無糖)', category: '豆漿', price: 30, emoji: '🥛', tags: [] },
+  { id: 'SD002', name: '豆漿(溫/含糖)', category: '豆漿', price: 30, emoji: '🥛', tags: [] },
+  { id: 'SD003', name: '豆漿(涼/無糖)', category: '豆漿', price: 30, emoji: '🥛', tags: [] },
+  { id: 'SD004', name: '豆漿(涼/含糖)', category: '豆漿', price: 30, emoji: '🥛', tags: [] },
+  { id: 'SD005', name: '豆漿紅茶(涼)', category: '豆漿', price: 35, emoji: '🥛', tags: [] },
+
+  // 咖啡系列
+  { id: 'C001', name: '美式咖啡(溫)', category: '咖啡', price: 55, emoji: '☕', tags: [] },
+  { id: 'C004', name: '美式咖啡(涼)', category: '咖啡', price: 70, emoji: '☕', tags: [] },
+  { id: 'C002', name: '手沖咖啡(溫)', category: '咖啡', price: 60, emoji: '☕', tags: [] },
+  { id: 'C005', name: '手沖咖啡(涼)', category: '咖啡', price: 75, emoji: '☕', tags: [] },
+  { id: 'C003', name: '手沖拿鐵(溫)', category: '咖啡', price: 70, emoji: '☕', tags: [] },
+  { id: 'C006', name: '手沖拿鐵(涼)', category: '咖啡', price: 85, emoji: '☕', tags: [] },
 ]
 
 export const CATEGORIES = [
   '全部', '虎皮蛋餅', '草原烤吐司', '漢堡', '厚片吐司', '蘿蔔糕套餐',
   '鍋炒麵', '義大利麵', '義大利燉飯', '早午餐(低GI)', '點心',
-  '飲品', '豆漿飲品', '咖啡',
+  '紅茶', '奶茶', '牛奶', '豆漿', '咖啡',
 ]
 
 export const CATEGORY_EMOJIS = {
@@ -124,7 +129,9 @@ export const CATEGORY_EMOJIS = {
   '義大利燉飯': '🍚',
   '早午餐(低GI)': '🥗',
   '點心': '🍟',
-  '飲品': '🧋',
-  '豆漿飲品': '🥛',
+  '紅茶': '🧋',
+  '奶茶': '🧋',
+  '牛奶': '🥛',
+  '豆漿': '🥛',
   '咖啡': '☕',
 }
