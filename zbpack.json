@@ -1,6 +1,4 @@
 {
-  "static": {
-    "dir": "dist"
-  },
-  "build_command": "npm install && npm run build"
+  "build_command": "npm install && npm run build",
+  "start_command": "npm start"
 }
