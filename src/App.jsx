@@ -1,18 +1,13 @@
-import React, { useState, useMemo } from 'react'
-import { ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, X, ChevronRight } from 'lucide-react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, X, ChevronRight, AlertCircle } from 'lucide-react'
 import {
   MENU_ITEMS, CATEGORIES, CATEGORY_EMOJIS,
   ADDON_ELIGIBLE_CATEGORIES, COMBO_OPTIONS, COMBO_DRINKS, COMBO_SIDES,
   EXTRA_OPTIONS, NOODLE_UPGRADES
 } from './data/menuData'
 
-// 生成訂單編號
-const generateOrderId = () => {
-  const now = new Date()
-  const time = now.toTimeString().slice(0, 5).replace(':', '')
-  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0')
-  return `${time}-${random}`
-}
+// API 基礎路徑
+const API_BASE = '/api'
 
 // 主應用
 export default function App() {
@@ -21,6 +16,8 @@ export default function App() {
   const [orders, setOrders] = useState([])
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   // 加購 Modal 狀態
   const [showAddonModal, setShowAddonModal] = useState(false)
@@ -30,6 +27,35 @@ export default function App() {
   const [selectedSides, setSelectedSides] = useState([])
   const [selectedExtras, setSelectedExtras] = useState([])
   const [selectedUpgrade, setSelectedUpgrade] = useState(null)
+
+  // 載入今日訂單
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/orders`)
+        if (response.ok) {
+          const data = await response.json()
+          // 轉換日期字串為 Date 物件
+          const ordersWithDates = data.map(order => ({
+            ...order,
+            createdAt: new Date(order.createdAt)
+          }))
+          setOrders(ordersWithDates)
+        }
+      } catch (err) {
+        console.error('載入訂單失敗:', err)
+      }
+    }
+    loadOrders()
+  }, [])
+
+  // 清除錯誤訊息
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
 
   // 篩選菜單
   const filteredItems = useMemo(() => {
@@ -142,28 +168,60 @@ export default function App() {
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   // 建立訂單
-  const handleCheckout = () => {
-    if (cart.length === 0) return
+  const handleCheckout = async () => {
+    if (cart.length === 0 || isLoading) return
 
-    const newOrder = {
-      id: generateOrderId(),
-      items: [...cart],
-      total: totalPrice,
-      status: 'pending',
-      createdAt: new Date()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cart })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '建立訂單失敗')
+      }
+
+      const newOrder = await response.json()
+      // 轉換日期
+      newOrder.createdAt = new Date(newOrder.createdAt)
+
+      setOrders(prev => [newOrder, ...prev])
+      setCurrentOrder(newOrder)
+      setShowOrderModal(true)
+      setCart([])
+    } catch (err) {
+      console.error('建立訂單失敗:', err)
+      setError(err.message || '建立訂單失敗，請重試')
+    } finally {
+      setIsLoading(false)
     }
-
-    setOrders(prev => [newOrder, ...prev])
-    setCurrentOrder(newOrder)
-    setShowOrderModal(true)
-    setCart([])
   }
 
   // 更新訂單狀態
-  const updateOrderStatus = (orderId, status) => {
-    setOrders(prev => prev.map(order =>
-      order.id === orderId ? { ...order, status } : order
-    ))
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      const response = await fetch(`${API_BASE}/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+
+      if (!response.ok) {
+        throw new Error('更新訂單失敗')
+      }
+
+      setOrders(prev => prev.map(order =>
+        order.id === orderId ? { ...order, status } : order
+      ))
+    } catch (err) {
+      console.error('更新訂單狀態失敗:', err)
+      setError('更新訂單狀態失敗')
+    }
   }
 
   // 時間格式化
