@@ -1,28 +1,19 @@
 {
   "name": "bobo-breakfast-pos",
   "version": "1.0.0",
-  "main": "App.js",
+  "type": "module",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "build": "npx expo export -p web",
-    "serve": "npx serve dist --single"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~4.0.1",
-    "expo": "~52.0.0",
-    "expo-asset": "~11.0.1",
-    "expo-font": "~13.0.4",
-    "expo-status-bar": "~2.0.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-native": "0.76.9",
-    "react-native-web": "~0.19.13"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.0"
-  },
-  "private": true
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0"
+  }
 }
