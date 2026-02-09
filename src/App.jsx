@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, X, ChevronRight, AlertCircle } from 'lucide-react'
+import { ShoppingCart, Plus, Minus, Trash2, Clock, CheckCircle, X, ChevronRight, AlertCircle, Lock, LogOut } from 'lucide-react'
 import {
   MENU_ITEMS, CATEGORIES, CATEGORY_EMOJIS,
   ADDON_ELIGIBLE_CATEGORIES, COMBO_OPTIONS, COMBO_DRINKS, COMBO_SIDES,
@@ -27,6 +27,13 @@ export default function App() {
   const [selectedSides, setSelectedSides] = useState([])
   const [selectedExtras, setSelectedExtras] = useState([])
   const [selectedUpgrade, setSelectedUpgrade] = useState(null)
+
+  // 管理員登入狀態
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [sessionToken, setSessionToken] = useState(null)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
 
   // 載入今日訂單
   useEffect(() => {
@@ -202,17 +209,31 @@ export default function App() {
     }
   }
 
-  // 更新訂單狀態
+  // 更新訂單狀態 (需要管理員權限)
   const updateOrderStatus = async (orderId, status) => {
+    if (!isAdmin || !sessionToken) {
+      setShowLoginModal(true)
+      return
+    }
+
     try {
       const response = await fetch(`${API_BASE}/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-Admin-Secret': 'bobo-admin-2024'
+          'X-Session-Token': sessionToken
         },
         body: JSON.stringify({ status })
       })
+
+      if (response.status === 401) {
+        // Session 過期，需要重新登入
+        setIsAdmin(false)
+        setSessionToken(null)
+        localStorage.removeItem('sessionToken')
+        setShowLoginModal(true)
+        return
+      }
 
       if (!response.ok) {
         throw new Error('更新訂單失敗')
@@ -226,6 +247,65 @@ export default function App() {
       setError('更新訂單狀態失敗')
     }
   }
+
+  // 管理員登入
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: loginPassword })
+      })
+
+      if (!response.ok) {
+        setLoginError('密碼錯誤')
+        return
+      }
+
+      const data = await response.json()
+      setSessionToken(data.sessionToken)
+      setIsAdmin(true)
+      localStorage.setItem('sessionToken', data.sessionToken)
+      setShowLoginModal(false)
+      setLoginPassword('')
+      setLoginError('')
+    } catch (err) {
+      setLoginError('登入失敗，請重試')
+    }
+  }
+
+  // 登出
+  const handleLogout = async () => {
+    if (sessionToken) {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'X-Session-Token': sessionToken }
+      })
+    }
+    setIsAdmin(false)
+    setSessionToken(null)
+    localStorage.removeItem('sessionToken')
+  }
+
+  // 檢查儲存的 session
+  useEffect(() => {
+    const savedToken = localStorage.getItem('sessionToken')
+    if (savedToken) {
+      fetch(`${API_BASE}/auth/check`, {
+        headers: { 'X-Session-Token': savedToken }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.authenticated) {
+            setSessionToken(savedToken)
+            setIsAdmin(true)
+          } else {
+            localStorage.removeItem('sessionToken')
+          }
+        })
+        .catch(() => localStorage.removeItem('sessionToken'))
+    }
+  }, [])
 
   // 時間格式化
   const formatTime = (date) => {
@@ -395,16 +475,40 @@ export default function App() {
         {/* 訂單列表 */}
         {orders.length > 0 && (
           <div style={styles.orderSection}>
-            <h3 style={styles.orderSectionTitle}>今日訂單</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={styles.orderSectionTitle}>今日訂單</h3>
+              {isAdmin ? (
+                <button
+                  onClick={handleLogout}
+                  style={{ ...styles.adminBtn, background: 'rgba(239,68,68,0.15)', color: '#EF4444' }}
+                >
+                  <LogOut size={14} /> 登出
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  style={styles.adminBtn}
+                >
+                  <Lock size={14} /> 管理
+                </button>
+              )}
+            </div>
+            {!isAdmin && (
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+                点擊「管理」登入後可更新訂單狀態
+              </p>
+            )}
             <div style={styles.orderList}>
               {orders.slice(0, 5).map(order => (
                 <div
                   key={order.id}
                   style={{
                     ...styles.orderItem,
-                    ...(order.status === 'completed' ? styles.orderCompleted : {})
+                    ...(order.status === 'completed' ? styles.orderCompleted : {}),
+                    cursor: isAdmin ? 'pointer' : 'default',
+                    opacity: isAdmin ? 1 : 0.7
                   }}
-                  onClick={() => updateOrderStatus(order.id, order.status === 'pending' ? 'completed' : 'pending')}
+                  onClick={() => isAdmin && updateOrderStatus(order.id, order.status === 'pending' ? 'completed' : 'pending')}
                 >
                   <div style={styles.orderInfo}>
                     <span style={styles.orderId}>#{order.id}</span>
@@ -600,6 +704,47 @@ export default function App() {
             </div>
             <button style={styles.modalBtn} onClick={() => setShowOrderModal(false)}>
               確認
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 登入 Modal */}
+      {showLoginModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
+          <div style={{ ...styles.modal, maxWidth: '320px' }} onClick={e => e.stopPropagation()}>
+            <button style={styles.modalClose} onClick={() => setShowLoginModal(false)}>
+              <X size={20} />
+            </button>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <Lock size={32} color="#F5A623" />
+              <h2 style={{ ...styles.modalTitle, marginTop: '12px' }}>管理員登入</h2>
+            </div>
+            <input
+              type="password"
+              placeholder="請輸入管理員密碼"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.05)',
+                color: '#F5F5F7',
+                fontSize: '14px',
+                marginBottom: '12px',
+                boxSizing: 'border-box'
+              }}
+            />
+            {loginError && (
+              <p style={{ color: '#EF4444', fontSize: '12px', marginBottom: '12px', textAlign: 'center' }}>
+                {loginError}
+              </p>
+            )}
+            <button style={styles.modalBtn} onClick={handleLogin}>
+              登入
             </button>
           </div>
         </div>
@@ -930,7 +1075,20 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: 'rgba(255,255,255,0.5)',
-    margin: '0 0 12px 0',
+    margin: 0,
+  },
+  adminBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    background: 'rgba(245,166,35,0.15)',
+    color: '#F5A623',
+    fontSize: '12px',
+    fontWeight: '500',
+    border: 'none',
+    cursor: 'pointer',
   },
   orderList: {
     display: 'flex',

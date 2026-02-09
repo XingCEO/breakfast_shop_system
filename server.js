@@ -26,14 +26,28 @@ if (!existsSync(ORDERS_FILE)) {
   writeFileSync(ORDERS_FILE, JSON.stringify({ orders: [] }, null, 2))
 }
 
-// 管理員密碼 (正式環境請使用環境變數)
+// 管理員密碼 (只存在於伺服器端)
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'bobo-admin-2024'
 
-// 驗證管理員權限中間件
+// Session 儲存 (簡易版，正式環境應使用 Redis 等)
+const sessions = new Map()
+
+// 生成隨機 Session Token
+const generateSessionToken = () => {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+}
+
+// 驗證管理員權限中間件 (檢查 session cookie)
 const validateAdminAuth = (req, res, next) => {
-  const authHeader = req.headers['x-admin-secret']
-  if (authHeader !== ADMIN_SECRET) {
-    return res.status(401).json({ error: '需要管理員權限' })
+  const sessionToken = req.headers['x-session-token']
+  if (!sessionToken || !sessions.has(sessionToken)) {
+    return res.status(401).json({ error: '需要管理員權限，請先登入' })
+  }
+  // 檢查 session 是否過期 (24小時)
+  const session = sessions.get(sessionToken)
+  if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
+    sessions.delete(sessionToken)
+    return res.status(401).json({ error: 'Session 已過期，請重新登入' })
   }
   next()
 }
@@ -257,6 +271,42 @@ app.post('/api/orders', (req, res) => {
     // 回傳通用錯誤訊息，不暴露詳細錯誤
     res.status(400).json({ error: '訂單建立失敗，請重試' })
   }
+})
+
+// POST /api/auth/login - 管理員登入
+app.post('/api/auth/login', (req, res) => {
+  const { password } = req.body
+
+  if (password !== ADMIN_SECRET) {
+    return res.status(401).json({ error: '密碼錯誤' })
+  }
+
+  const sessionToken = generateSessionToken()
+  sessions.set(sessionToken, { createdAt: Date.now() })
+
+  console.log('管理員登入成功')
+  res.json({ sessionToken, message: '登入成功' })
+})
+
+// GET /api/auth/check - 檢查登入狀態
+app.get('/api/auth/check', (req, res) => {
+  const sessionToken = req.headers['x-session-token']
+  if (sessionToken && sessions.has(sessionToken)) {
+    const session = sessions.get(sessionToken)
+    if (Date.now() - session.createdAt <= 24 * 60 * 60 * 1000) {
+      return res.json({ authenticated: true })
+    }
+  }
+  res.json({ authenticated: false })
+})
+
+// POST /api/auth/logout - 登出
+app.post('/api/auth/logout', (req, res) => {
+  const sessionToken = req.headers['x-session-token']
+  if (sessionToken) {
+    sessions.delete(sessionToken)
+  }
+  res.json({ message: '已登出' })
 })
 
 // GET /api/orders - 取得今日訂單
