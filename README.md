@@ -28,6 +28,26 @@
    npm start
    ```
 
+## 部署 (Deployment)
+
+本專案支援 Web 靜態部署 (Vercel, Netlify, Zeabur 等)。
+
+1. **建置靜態檔案**：
+   ```bash
+   npm run build
+   ```
+   產生的檔案位於 `dist` 目錄。
+
+2. **本地預覽 (Production Preview)**：
+   ```bash
+   npm run serve
+   ```
+   此命令會啟動靜態文件伺服器，模擬生產環境。
+
+3. **平台設定**：
+   - Output Directory: `dist`
+   - Build Command: `npm run build` (或 `npx expo export -p web`)
+
 ## 技術棧 (Tech Stack)
 
 - **React Native** / **Expo**
