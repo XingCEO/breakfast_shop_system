@@ -26,6 +26,18 @@ if (!existsSync(ORDERS_FILE)) {
   writeFileSync(ORDERS_FILE, JSON.stringify({ orders: [] }, null, 2))
 }
 
+// 管理員密碼 (正式環境請使用環境變數)
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'bobo-admin-2024'
+
+// 驗證管理員權限中間件
+const validateAdminAuth = (req, res, next) => {
+  const authHeader = req.headers['x-admin-secret']
+  if (authHeader !== ADMIN_SECRET) {
+    return res.status(401).json({ error: '需要管理員權限' })
+  }
+  next()
+}
+
 // 載入菜單資料用於伺服器端價格驗證
 const MENU_ITEMS = [
   { id: '1197701', name: '蛋餅-虎皮(蛋素)', price: 50 },
@@ -242,7 +254,8 @@ app.post('/api/orders', (req, res) => {
     res.status(201).json(newOrder)
   } catch (error) {
     console.error('建立訂單失敗:', error.message)
-    res.status(400).json({ error: error.message })
+    // 回傳通用錯誤訊息，不暴露詳細錯誤
+    res.status(400).json({ error: '訂單建立失敗，請重試' })
   }
 })
 
@@ -262,8 +275,8 @@ app.get('/api/orders', (req, res) => {
   }
 })
 
-// PATCH /api/orders/:id - 更新訂單狀態
-app.patch('/api/orders/:id', (req, res) => {
+// PATCH /api/orders/:id - 更新訂單狀態 (需要管理員權限)
+app.patch('/api/orders/:id', validateAdminAuth, (req, res) => {
   try {
     const { id } = req.params
     const { status } = req.body

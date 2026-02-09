@@ -196,7 +196,7 @@ export default function App() {
       setCart([])
     } catch (err) {
       console.error('建立訂單失敗:', err)
-      setError(err.message || '建立訂單失敗，請重試')
+      setError('發生了一些問題，請稍後再試')
     } finally {
       setIsLoading(false)
     }
@@ -207,7 +207,10 @@ export default function App() {
     try {
       const response = await fetch(`${API_BASE}/orders/${orderId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Secret': 'bobo-admin-2024'
+        },
         body: JSON.stringify({ status })
       })
 
@@ -343,7 +346,7 @@ export default function App() {
               <div key={item.cartKey} style={styles.cartItem}>
                 <div style={styles.cartItemInfo}>
                   <span style={styles.cartEmoji}>{item.emoji}</span>
-                  <div style={{flex: 1}}>
+                  <div style={{ flex: 1 }}>
                     <p style={styles.cartItemName}>{item.name}</p>
                     {item.addons?.length > 0 && (
                       <p style={styles.cartAddons}>
@@ -381,7 +384,7 @@ export default function App() {
             <span style={styles.totalPrice}>${totalPrice}</span>
           </div>
           <button
-            style={{...styles.checkoutBtn, opacity: cart.length === 0 ? 0.5 : 1}}
+            style={{ ...styles.checkoutBtn, opacity: cart.length === 0 ? 0.5 : 1 }}
             onClick={handleCheckout}
             disabled={cart.length === 0}
           >
@@ -431,7 +434,7 @@ export default function App() {
             </button>
 
             <div style={styles.addonHeader}>
-              <span style={{fontSize: '32px'}}>{addonItem.emoji}</span>
+              <span style={{ fontSize: '32px' }}>{addonItem.emoji}</span>
               <div>
                 <h2 style={styles.addonTitle}>{addonItem.name}</h2>
                 <p style={styles.addonPrice}>單價 ${addonItem.price}</p>
@@ -582,7 +585,7 @@ export default function App() {
                   <div>
                     <span>{item.emoji} {item.name} × {item.quantity}</span>
                     {item.addons?.length > 0 && (
-                      <p style={{fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0'}}>
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0' }}>
                         {item.addons.map(a => a.name).join(', ')}
                       </p>
                     )}
